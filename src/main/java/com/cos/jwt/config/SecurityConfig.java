@@ -1,11 +1,15 @@
 package com.cos.jwt.config;
 
+import com.cos.jwt.filter.MyFilter1;
+import com.cos.jwt.filter.MyFilter3;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
 import org.springframework.web.filter.CorsFilter;
 
 @Configuration
@@ -18,6 +22,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+        // SecurityContextPersistenceFilter 는 Security Filter Chain 중 가장 우선적으로 실행되는 필터임.
+        // http.addFilterBefore() 메서드에 new MyFilter3(), SecurityContextPersistenceFilter.class 파라미터를 순서대로 대입하면
+        // Security Filter Chain 이 실행되기 전에 MyFilter3이 실행됨.
+        http.addFilterBefore(new MyFilter3(), SecurityContextPersistenceFilter.class);
 
         // CSRF 보호 비활성화
         http.csrf().disable();
