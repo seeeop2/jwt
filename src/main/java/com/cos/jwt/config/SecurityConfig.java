@@ -1,5 +1,6 @@
 package com.cos.jwt.config;
 
+import com.cos.jwt.config.jwt.JwtAuthenticationFilter;
 import com.cos.jwt.filter.MyFilter1;
 import com.cos.jwt.filter.MyFilter3;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin().disable()
                 // HTTP Basic 인증을 사용하지 않음
                 .httpBasic().disable()
+                // authenticationManger를 파라미터로 넣어줘야 함.
+                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
                 // 요청에 대한 접근 제어를 시작
                 .authorizeRequests()
                 // 사용자 관련 API 경로
