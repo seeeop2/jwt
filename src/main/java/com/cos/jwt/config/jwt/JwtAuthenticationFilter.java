@@ -1,5 +1,7 @@
 package com.cos.jwt.config.jwt;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.cos.jwt.config.auth.PrincipalDetails;
 import com.cos.jwt.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Date;
 
 // JwtAuthenticationFilter 클래스는 스프링 시큐리티의 UsernamePasswordAuthenticationFilter를 확장함
 // /login 요청(POST)을 통해 username과 password를 전송하면 이 필터가 활성화됨
@@ -81,8 +84,28 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     // JWT 토큰을 만들어서 request 요청한 사용자에게 JWT 토큰을 response 해주면 됨.
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
+        // 인증이 완료되었음을 알리는 로그 출력
         System.out.println("successfulAuthentication 실행됨: 인증이 완료되었다는 뜻임.");
-        // 부모 클래스의 successfulAuthentication 메서드 호출
-        super.successfulAuthentication(request, response, chain, authResult);
+
+        // 인증된 사용자의 정보를 PrincipalDetails에서 가져옴
+        PrincipalDetails principalDetails = (PrincipalDetails) authResult.getPrincipal();
+
+        // JWT 토큰을 생성
+        // RSA 방식 대신 HMAC 해시 암호 방식을 사용
+        String jwtToken = JWT.create()
+                // 토큰의 주제 설정
+                .withSubject("cos토큰")
+                // 토큰 만료 시간 설정
+                .withExpiresAt(new Date(System.currentTimeMillis() + (60000 * 10)))
+                // 사용자 ID를 클레임에 추가
+                .withClaim("id", principalDetails.getUser().getId())
+                // 사용자 이름을 클레임에 추가
+                .withClaim("username", principalDetails.getUser().getUsername())
+                // HMAC512 알고리즘으로 서명
+                .sign(Algorithm.HMAC512("cos"))
+                ;
+
+        // 생성한 JWT 토큰을 Authorization 헤더에 추가하여 응답
+        response.addHeader("Authorization", "Bearer " + jwtToken);
     }
 }
